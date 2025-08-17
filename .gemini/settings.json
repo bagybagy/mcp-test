@@ -1,0 +1,13 @@
+{
+  "selectedAuthType": "oauth-personal",
+
+  "mcpServers": {
+    "mcp-unity": {
+      "command": "node",
+      "args": [
+        "C:/repos/mcp_test/Library/PackageCache/com.gamelovers.mcp-unity@2dda46359ecc/Server~/build/index.js"
+      ]
+    }
+  }
+
+}

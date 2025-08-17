@@ -1,0 +1,476 @@
+【プロジェクト名】Project: Vampire Survivor 3D (仮)
+1. ゲーム概要
+
+プレイヤーキャラクターを操作し、四方八方から迫り来る大量の敵を、自動で発動する武器で倒し続ける3Dサバイバルアクションゲーム。敵を倒して経験値を獲得し、レベルアップ時に得られる新たな武器や能力でキャラクターを強化しながら、できるだけ長く生き残ることを目指す。
+2. 開発環境
+
+    ゲームエンジン: Unity 6
+
+    レンダリングパイプライン: Universal Render Pipeline (URP)
+
+    開発補助AI: Gemini CLI, Unity Muse (MPC)
+
+開発手順書
+
+この手順書は、Gemini CLIへの指示（プロンプト）として利用することを想定しています。各項目を順番に実行してください。
+フェーズ1：プロジェクトのセットアップと基本環境の構築
+ステップ1.1：Unityプロジェクトの作成
+
+AIへの指示（Gemini CLIへのプロンプト例）:
+「Unity 6で、'3D (URP)' テンプレートを使用して、VampireSurvivor3D という名前の新しいプロジェクトを作成してください。」
+
+【✅ユーザーチェックポイント】
+
+    Unity HubまたはUnity Editorから、VampireSurvivor3D プロジェクトがURPテンプレートで作成されていることを確認してください。
+
+ステップ1.2：基本的なシーンの作成とアセットの準備
+
+AIへの指示:
+「以下の手順で基本的なゲームシーンを構築してください。
+
+    新しいシーンを作成し、GameScene という名前で保存してください。
+
+    GameScene 内に、床となる広大な Plane オブジェクトを配置してください。名前は Ground とし、位置は(0, 0, 0)、スケールは(100, 1, 100)に設定してください。
+
+    Ground のマテリアルを新規作成し、色は灰色（R:128, G:128, B:128）に設定してください。
+
+    シーンのライティングを調整するため、Directional Light の角度を調整し、影が適切に表示されるようにしてください。
+
+    今後の開発で使用するため、以下のフォルダを Assets 直下に作成してください: _Scripts, _Prefabs, _Materials, _Models, _Textures。」
+
+【✅ユーザーチェックポイント】
+
+    GameScene が開かれていることを確認してください。
+
+    シーン内に広大な灰色の Ground (Plane) が配置されていることを確認してください。
+
+    指定された5つのフォルダが Assets フォルダ内に作成されていることを確認してください。
+
+フェーズ2：プレイヤーキャラクターの実装
+ステップ2.1：プレイヤーオブジェクトの配置
+
+AIへの指示:
+「以下の仕様でプレイヤーキャラクターのオブジェクトを作成してください。
+
+    Capsule オブジェクトを新規作成し、名前を Player としてください。
+
+    Player の位置を (0, 1, 0) に設定してください。
+
+    Player オブジェクトに Rigidbody コンポーネントを追加してください。Constraints の Freeze Rotation のXとZにチェックを入れて、転倒しないように設定してください。」
+
+【✅ユーザーチェックポイント】
+
+    シーン内に Player という名前のカプセルオブジェクトが配置されていることを確認してください。
+
+    Player のインスペクターに Rigidbody が追加され、RotationのXとZがFreezeされていることを確認してください。
+
+ステップ2.2：プレイヤーの移動スクリプト作成
+
+AIへの指示:
+「_Scripts フォルダに PlayerController という名前の新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+    目的: プレイヤーの移動を制御する。
+
+    変数:
+
+        public float moveSpeed = 5f; （移動速度）
+
+    コンポーネント参照:
+
+        Rigidbody コンポーネントへの参照を Awake() または Start() で取得する。
+
+    処理:
+
+        Update() メソッド内で、Input.GetAxis("Horizontal") と Input.GetAxis("Vertical") を使用して水平・垂直方向の入力を取得する。
+
+        取得した入力を基に、移動方向のベクトル (Vector3 moveDirection) を作成する。
+
+        FixedUpdate() メソッド内で、Rigidbody.velocity を使って moveDirection と moveSpeed を乗じた値でプレイヤーを移動させる。キャラクターが向いている方向ではなく、ワールド座標基準で移動するようにしてください。」
+
+AIへの指示（続き）:
+「作成した PlayerController.cs スクリプトを、シーン内の Player オブジェクトにアタッチしてください。」
+
+【✅ユーザーチェックポイント】
+
+    Unityエディタで再生ボタンを押し、W/A/S/Dキー（または矢印キー）でプレイヤーが前後左右に移動できることを確認してください。
+
+    移動中にプレイヤーが転倒しないことを確認してください。
+
+ステップ2.3：追従カメラの実装
+
+AIへの指示:
+「Main Camera が常にプレイヤーを追いかけるように設定してください。
+
+    Main Camera を Player オブジェクトの子にしてください。
+
+    Main Camera の Transform を調整し、プレイヤーを斜め上から見下ろす視点にしてください。例えば、Position (0, 10, -10)、Rotation (45, 0, 0) など、適切な値に設定してください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生し、プレイヤーを移動させた際に、カメラがプレイヤーに追従して動くことを確認してください。
+
+    カメラアングルが三人称視点として適切であることを確認してください。
+
+フェーズ3：敵キャラクターの実装
+ステップ3.1：敵キャラクターのプレハブ作成
+
+AIへの指示:
+「以下の手順で敵キャラクターのプレハブを作成してください。
+
+    Cube オブジェクトを新規作成し、名前を Enemy としてください。
+
+    サイズを (0.8, 0.8, 0.8) に変更してください。
+
+    _Materials フォルダに新しいマテリアル Enemy_Mat を作成し、色を赤色に設定してください。このマテリアルを Enemy オブジェクトに適用してください。
+
+    Enemy オブジェクトに Rigidbody コンポーネントを追加し、Use Gravity のチェックを外してください。
+
+    この Enemy オブジェクトを _Prefabs フォルダにドラッグ＆ドロップしてプレハブ化し、シーン上の Enemy オブジェクトは削除してください。」
+
+【✅ユーザーチェックポイント】
+
+    _Prefabs フォルダに、赤いキューブの Enemy プレハブが作成されていることを確認してください。
+
+ステップ3.2：敵の追跡AIスクリプト作成
+
+AIへの指示:
+「_Scripts フォルダに EnemyAI という名前の新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+    目的: 敵がプレイヤーを自動で追跡する。
+
+    変数:
+
+        public float moveSpeed = 3f; （移動速度）
+
+        private Transform playerTransform; （プレイヤーの位置情報）
+
+    処理:
+
+        Start() メソッドで、GameObject.FindGameObjectWithTag("Player") を使ってプレイヤーオブジェクトを検索し、その transform を playerTransform に格納してください。（このために、Player オブジェクトのタグを Player に設定する必要があります。）
+
+        Update() メソッドで、playerTransform の方向を向くようにしてください。ただし、Y軸は回転しないようにしてください。
+
+        Update() メソッドで、プレイヤーの方向に向かって transform.forward を使って前進させてください。」
+
+AIへの指示（続き）:
+「シーン上のPlayerオブジェクトのタグをPlayerに設定してください。その後、_PrefabsフォルダにあるEnemyプレハブにEnemyAI.csスクリプトをアタッチしてください。」
+
+【✅ユーザーチェックポイント】
+
+    Enemy プレハブをシーンに一時的に配置し、ゲームを再生してください。
+
+    Enemy が Player の方向を向き、まっすぐ追跡してくることを確認してください。確認後、シーン上の Enemy は削除してください。
+
+ステップ3.3：敵のスポナー（生成システム）の実装
+
+AIへの指示:
+「敵を自動で生成するシステムを作成します。
+
+    シーンに空の GameObject を作成し、名前を EnemySpawner としてください。
+
+    _Scripts フォルダに EnemySpawner という名前の新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+        変数:
+
+            public GameObject enemyPrefab; （生成する敵のプレハブ）
+
+            public float spawnInterval = 1f; （生成間隔）
+
+            public float spawnRadius = 20f; （プレイヤーを中心とした生成半径）
+
+        処理:
+
+            Start() メソッドで、InvokeRepeating() を使用し、spawnInterval ごとに SpawnEnemy メソッドを呼び出すように設定してください。
+
+            SpawnEnemy メソッドを作成してください。
+
+            SpawnEnemy メソッド内では、プレイヤーの周囲 spawnRadius の円周上のランダムな位置に enemyPrefab をインスタンス化（Instantiate）する処理を記述してください。
+
+    作成した EnemySpawner.cs スクリプトを EnemySpawner オブジェクトにアタッチしてください。
+
+    インスペクターから、Enemy Prefab に _Prefabs フォルダの Enemy プレハブを割り当ててください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生してください。
+
+    プレイヤーの周囲の、画面外に近い位置から定期的に敵（赤いキューブ）が出現し、プレイヤーに向かってくることを確認してください。
+
+
+フェーズ4：武器と攻撃システム
+
+このフェーズでは、プレイヤーが自動で敵を攻撃する基本的な武器を実装します。
+ステップ4.1：武器プレハブの作成
+
+AIへの指示（Gemini CLIへのプロンプト例）:
+「プレイヤーの周囲を回転する武器を作成します。以下の手順でプレハブを作成してください。
+
+    シーンに Sphere オブジェクトを新規作成し、名前を RotatingOrb としてください。
+
+    RotatingOrb のスケールを (0.5, 0.5, 0.5) に設定してください。
+
+    _Materials フォルダに Weapon_Mat という新しいマテリアルを作成し、色は青色に設定して RotatingOrb に適用してください。
+
+    RotatingOrb の Sphere Collider コンポーネントで、Is Trigger にチェックを入れてください。
+
+    この RotatingOrb オブジェクトを _Prefabs フォルダにドラッグ＆ドロップしてプレハブ化し、シーン上のオブジェクトは削除してください。」
+
+【✅ユーザーチェックポイント】
+
+    _Prefabs フォルダに、青い球体の RotatingOrb プレハブが作成されていることを確認してください。
+
+    プレハブのインスペクターで Sphere Collider の Is Trigger がオンになっていることを確認してください。
+
+ステップ4.2：武器の挙動（回転）スクリプト作成
+
+AIへの指示:
+「_Scripts フォルダに WeaponController という名前の新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+    目的: 武器がプレイヤーの周りを回転するように制御する。
+
+    変数:
+
+        public float rotationSpeed = 100f; （回転速度）
+
+        private Transform playerTransform; （プレイヤーの位置情報）
+
+    処理:
+
+        Start() メソッドで、このスクリプトがアタッチされたオブジェクトの親オブジェクト（つまりプレイヤー）の transform を playerTransform に格納してください。
+
+        Update() メソッドで、playerTransform の位置を軸として、Y軸周りに rotationSpeed で公転させてください。(transform.RotateAround を使用します)」
+
+AIへの指示（続き）:
+「作成した WeaponController.cs を RotatingOrb プレハブにアタッチしてください。」
+
+【✅ユーザーチェックポイント】
+
+    RotatingOrb プレハブのインスペクターに WeaponController スクリプトがアタッチされていることを確認してください。
+
+ステップ4.3：プレイヤーへの武器の装備
+
+AIへの指示:
+「ゲーム開始時にプレイヤーが武器を装備するようにします。_Scripts フォルダに WeaponManager という新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+    変数:
+
+        public GameObject initialWeaponPrefab; （初期武器のプレハブ）
+
+        public Transform weaponSocket; （武器をアタッチする場所。プレイヤー自身で良い）
+
+    処理:
+
+        Start() メソッドで、initialWeaponPrefab を weaponSocket の位置にインスタンス化（Instantiate）し、weaponSocket の子オブジェクトにしてください。」
+
+AIへの指示（続き）:
+「1. Player オブジェクトに WeaponManager スクリプトをアタッチしてください。
+2. インスペクターから Initial Weapon Prefab に RotatingOrb プレハブを、Weapon Socket に Player オブジェクト自身をドラッグ＆ドロップで割り当ててください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生してください。
+
+    プレイヤーの周りを青い球体(RotatingOrb)がくるくると回転し続けていることを確認してください。
+
+ステップ4.4：敵のHPと武器によるダメージ処理
+
+AIへの指示:
+「武器が敵に当たった時にダメージを与えられるようにします。
+
+    _Scripts フォルダに EnemyHealth という新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+        変数: public int health = 1;
+
+        メソッド: public void TakeDamage(int damage) を作成してください。このメソッドは、引数で受け取った damage の分だけ health を減らし、health が0以下になったら、そのゲームオブジェクト自身を破棄（Destroy）します。
+
+    次に、WeaponController.cs スクリプトを修正し、衝突判定を追加してください。
+
+        OnTriggerEnter(Collider other) メソッドを追加してください。
+
+        other のゲームオブジェクトが "Enemy" タグを持っているか確認してください。（このため、Enemy プレハブのタグを Enemy に設定する必要があります。）
+
+        もし "Enemy" タグを持っていたら、そのオブジェクトの EnemyHealth コンポーネントを取得し、TakeDamage(1) メソッドを呼び出してください。」
+
+AIへの指示（続き）:
+「1. _Prefabs フォルダにある Enemy プレハブに EnemyHealth.cs スクリプトをアタッチしてください。
+2. Enemy プレハブのタグを Enemy に設定してください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生してください。
+
+    プレイヤーの周りを回る青い球が敵（赤いキューブ）に接触すると、敵が消滅することを確認してください。
+
+フェーズ5：経験値とレベルアップシステム
+
+敵を倒して経験値を獲得し、キャラクターを成長させるシステムを実装します。
+ステップ5.1：経験値アイテムのプレハブ作成
+
+AIへの指示:
+「敵がドロップする経験値アイテムを作成します。
+
+    Sphere オブジェクトを新規作成し、名前を ExpOrb としてください。
+
+    スケールを (0.3, 0.3, 0.3) に設定してください。
+
+    _Materials フォルダに Exp_Mat という新しいマテリアルを作成し、色は緑色に設定して ExpOrb に適用してください。
+
+    Sphere Collider コンポーネントの Is Trigger にチェックを入れてください。
+
+    ExpOrb オブジェクトを _Prefabs フォルダにプレハブ化し、シーン上のオブジェクトは削除してください。
+
+    最後に、ExpOrb プレハブのタグを ExpOrb に設定してください。」
+
+【✅ユーザーチェックポイント】
+
+    _Prefabs フォルダに緑色の小さな球体 ExpOrb プレハブが作成されていることを確認してください。
+
+    プレハブのタグが ExpOrb に設定されていることを確認してください。
+
+ステップ5.2：敵からの経験値アイテムドロップ
+
+AIへの指示:
+「敵が倒された時に、その場に経験値アイテムをドロップするように EnemyHealth.cs を修正してください。
+
+    変数: public GameObject expOrbPrefab; を追加してください。
+
+    処理: health が0以下になってオブジェクトを Destroy する直前に、expOrbPrefab を自身の位置（transform.position）にインスタンス化する処理を追加してください。」
+
+AIへの指示（続き）:
+「_Prefabs フォルダの Enemy プレハブを選択し、インスペクターから EnemyHealth コンポーネントの Exp Orb Prefab フィールドに、同じく _Prefabs フォルダにある ExpOrb プレハブを割り当ててください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生し、敵を倒した場所に緑色の経験値アイテムが出現することを確認してください。
+
+ステップ5.3：経験値の取得とレベルアップ処理
+
+AIへの指示:
+「プレイヤーが経験値アイテムを取得し、レベルアップするシステムを実装します。
+
+    _Scripts フォルダに LevelSystem という新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+        変数:
+
+            private int level = 1; （現在のレベル）
+
+            private int currentExp = 0; （現在の経験値）
+
+            private int requiredExp = 10; （次のレベルに必要な経験値）
+
+        メソッド: public void AddExperience(int amount) を作成してください。このメソッド内で以下の処理を行ってください。
+
+            currentExp に amount を加算する。
+
+            Debug.Log で現在の経験値をコンソールに表示する。
+
+            もし currentExp が requiredExp 以上になったら、レベルアップ処理を行う。
+
+                level を1上げる。
+
+                currentExp から requiredExp を引く。
+
+                requiredExp を増加させる（例: requiredExp = requiredExp + 5;）。
+
+                Debug.Log で「レベルアップ！現在のレベル: (level)」のようにコンソールに表示する。
+
+    次に、PlayerController.cs を修正して、経験値アイテムを取得する機能を追加してください。
+
+        private LevelSystem levelSystem; を宣言し、Start() で GetComponent<LevelSystem>() を使って参照を取得してください。
+
+        OnTriggerEnter(Collider other) メソッドを追加してください。
+
+        衝突した other のタグが "ExpOrb" であれば、levelSystem.AddExperience(1) を呼び出し、その other のゲームオブジェクトを Destroy してください。」
+
+AIへの指示（続き）:
+「Player オブジェクトに LevelSystem.cs スクリプトをアタッチしてください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生し、敵を倒して出現した緑のアイテムに触れてください。
+
+    アイテムが消え、Unityのコンソールウィンドウに経験値が増加するログが表示されることを確認してください。
+
+    経験値が一定量たまると、「レベルアップ！」のログが表示されることを確認してください。
+
+フェーズ6：ゲームフローとUI
+
+ゲームの状況をプレイヤーに伝えるための基本的なUIと、ゲームオーバーの仕組みを実装します。
+ステップ6.1：UI要素の作成
+
+AIへの指示:
+「ゲームに必要なUIを作成します。
+
+    ヒエラルキーで右クリックし、UI -> Canvas を作成してください。
+
+    作成された Canvas を選択し、インスペクターの Canvas Scaler コンポーネントの UI Scale Mode を Scale With Screen Size に変更してください。
+
+    Canvas の子オブジェクトとして、以下のUI要素を追加してください。
+
+        UI -> Text - TextMeshPro を作成し、名前を LevelText とする。画面左上に配置し、テキストを「Level: 1」とする。
+
+        UI -> Slider を作成し、名前を ExpBar とする。画面上部中央に配置し、サイズを調整する。Value は0にする。
+
+        UI -> Text - TextMeshPro を作成し、名前を TimerText とする。画面右上に配置し、テキストを「Time: 0.00」とする。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームビューに「Level: 1」「Time: 0.00」というテキストと、空のスライダーが表示されていることを確認してください。
+
+ステップ6.2：UI管理スクリプトの作成
+
+AIへの指示:
+「UIを更新するためのマネージャーを作成します。
+
+    シーンに空の GameObject を作成し、名前を UIManager としてください。
+
+    _Scripts フォルダに UIManager という新しいC#スクリプトを作成し、以下の仕様で実装してください。
+
+        using TMPro; と using UnityEngine.UI; をファイルの先頭に追加してください。
+
+        変数:
+
+            public TextMeshProUGUI levelText;
+
+            public Slider expBar;
+
+            public TextMeshProUGUI timerText;
+
+            private float elapsedTime;
+
+        メソッド:
+
+            public void UpdateLevelText(int level): levelText.text = "Level: " + level; のようにテキストを更新する。
+
+            public void UpdateExpBar(int currentExp, int requiredExp): expBar.maxValue = requiredExp; expBar.value = currentExp; のようにスライダーを更新する。
+
+            Update() メソッド内で elapsedTime += Time.deltaTime; のように時間を加算し、timerText.text = "Time: " + elapsedTime.ToString("F2"); のようにタイマー表示を更新する。
+
+    作成した UIManager.cs を UIManager オブジェクトにアタッチしてください。
+
+    インスペクターから、Level Text, Exp Bar, Timer Text の各フィールドに、先ほど作成したUI要素をドラッグ＆ドロップで割り当ててください。」
+
+ステップ6.3：各システムとUIの連携
+
+AIへの指示:
+「LevelSystem.cs から UIManager を呼び出してUIを更新するように修正してください。
+
+    変数: private UIManager uiManager; を追加。
+
+    処理:
+
+        Start() メソッドで uiManager = FindObjectOfType<UIManager>(); を使って参照を取得し、初期UIを更新するために uiManager.UpdateLevelText(level); と uiManager.UpdateExpBar(currentExp, requiredExp); を呼び出してください。
+
+        AddExperience メソッド内で経験値が加算されたタイミングで uiManager.UpdateExpBar(currentExp, requiredExp); を呼び出してください。
+
+        レベルアップしたタイミングで uiManager.UpdateLevelText(level); と uiManager.UpdateExpBar(currentExp, requiredExp); を呼び出してください。」
+
+【✅ユーザーチェックポイント】
+
+    ゲームを再生してください。
+
+    画面右上のタイマーが動き出すことを確認してください。
+
+    経験値アイテムを取得すると、画面上部の経験値バーが増加することを確認してください。
+
+    レベルアップすると、画面左上のレベル表示が更新され、経験値バーがリセットされることを確認してください。
